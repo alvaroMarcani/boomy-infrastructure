@@ -1,0 +1,22 @@
+# Docker / compose overrides
+docker-compose.override.yml
+.dockerignore
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets/
