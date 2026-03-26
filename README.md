@@ -1,6 +1,6 @@
-# GunBound Infrastructure
+# Boomy Infrastructure
 
-Docker Compose orchestration, database initialization scripts, and migrations for the GunBound project.
+Docker Compose orchestration, database initialization scripts, and migrations for the Boomy project.
 
 ## Services
 
@@ -8,8 +8,8 @@ Docker Compose orchestration, database initialization scripts, and migrations fo
 |---------|-------|------|
 | PostgreSQL | `postgres:16-alpine` | 5432 |
 | Redis | `redis:7-alpine` | 6379 |
-| Backend API | `youruser/gunbound-backend:latest` | 5000 |
-| Frontend | `youruser/gunbound-frontend:latest` | 4200 |
+| Backend API | `youruser/boomy-backend:latest` | 5000 |
+| Frontend | `youruser/boomy-frontend:latest` | 4200 |
 | pgAdmin | `dpage/pgadmin4` | 5050 |
 
 ## Getting Started
@@ -46,13 +46,13 @@ docker compose up -d
 Migration scripts live in `migrations/`. Run them in order against the PostgreSQL instance:
 
 ```bash
-psql -h localhost -U postgres -d gunbound_db -f migrations/migration_add_gamemode_chat.sql
+psql -h localhost -U postgres -d boomy_db -f migrations/migration_add_gamemode_chat.sql
 ```
 
 ## Seed Data
 
 ```bash
-psql -h localhost -U postgres -d gunbound_db -f seed_gamemodes.sql
+psql -h localhost -U postgres -d boomy_db -f seed_gamemodes.sql
 ```
 
 ## CI/CD
@@ -67,5 +67,5 @@ Requires the following repository secrets:
 
 | Repo | Description |
 |------|-------------|
-| [gunbound-backend](https://github.com/alvaroMarcani/gunbound-backend) | .NET 9 API & SignalR backend |
-| [gunbound-frontend](https://github.com/alvaroMarcani/gunbound-frontend) | Angular client app |
+| [boomy-backend](https://github.com/alvaroMarcani/boomy-backend) | .NET 9 API & SignalR backend |
+| [boomy-frontend](https://github.com/alvaroMarcani/boomy-frontend) | Angular client app |

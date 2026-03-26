@@ -4,7 +4,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: gunbound_postgres
+    container_name: boomy_postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - gunbound_network
+      - boomy_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -25,11 +25,11 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: gunbound_redis
+    container_name: boomy_redis
     ports:
       - "6379:6379"
     networks:
-      - gunbound_network
+      - boomy_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -38,12 +38,12 @@ services:
 
   # Backend API
   backend:
-    image: ${DOCKER_USERNAME:-alvaroMarcani}/gunbound-backend:latest
-    container_name: gunbound_backend
+    image: ${DOCKER_USERNAME:-alvaroMarcani}/boomy-backend:latest
+    container_name: boomy_backend
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 5000
-      ConnectionStrings__PostgreSQL: "Host=postgres;Port=5432;Database=gunbound_db;Username=gunbound_user;Password=GunBound123!@#"
+      ConnectionStrings__PostgreSQL: "Host=postgres;Port=5432;Database=boomy_db;Username=boomy_user;Password=Boomy123!@#"
     ports:
       - "5000:5000"
     depends_on:
@@ -52,25 +52,25 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - gunbound_network
+      - boomy_network
 
   # Frontend
   frontend:
-    image: ${DOCKER_USERNAME:-alvaroMarcani}/gunbound-frontend:latest
-    container_name: gunbound_frontend
+    image: ${DOCKER_USERNAME:-alvaroMarcani}/boomy-frontend:latest
+    container_name: boomy_frontend
     ports:
       - "4200:4200"
     environment:
       ANGULAR_CLI_ANALYTICS: false
     networks:
-      - gunbound_network
+      - boomy_network
 
   # pgAdmin - PostgreSQL Administration Tool
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: gunbound_pgadmin
+    container_name: boomy_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gunbound.com
+      PGADMIN_DEFAULT_EMAIL: admin@boomy.com
       PGADMIN_DEFAULT_PASSWORD: admin123
     ports:
       - "5050:80"
@@ -78,7 +78,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - gunbound_network
+      - boomy_network
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
@@ -87,5 +87,5 @@ volumes:
   pgadmin_data:
 
 networks:
-  gunbound_network:
+  boomy_network:
     driver: bridge
