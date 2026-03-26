@@ -1,32 +1,37 @@
-# Boomy Infrastructure
+﻿# boomy-infrastructure
 
-Docker Compose orchestration, database init scripts, and migrations for the Boomy project.
+[![Deploy](https://github.com/alvaroMarcani/boomy-infrastructure/actions/workflows/deploy.yml/badge.svg)](https://github.com/alvaroMarcani/boomy-infrastructure/actions/workflows/deploy.yml)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED)](https://docs.docker.com/compose/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Repository Structure
+Docker Compose stack, database bootstrap scripts, and SQL migrations for the Boomy project.
 
-```
-boomy-infrastructure/
-├── docker-compose.yml              # Full stack definition
-├── init.sql                        # DB user & database bootstrap (runs once on first start)
-├── seed_gamemodes.sql              # Initial game mode seed data
-├── migrations/
-│   └── migration_add_gamemode_chat.sql   # Adds GameModes & ChatMessages tables
-└── .github/
-    └── workflows/
-        └── deploy.yml              # Auto-deploy on push to main
-```
+---
+
+## Table of Contents
+
+- [Services](#services)
+- [Getting Started](#getting-started)
+- [Applying Migrations](#applying-migrations)
+- [CI/CD](#cicd)
+- [Repository Structure](#repository-structure)
+- [Contributing](#contributing)
+
+---
 
 ## Services
 
-| Service | Image | Port | Credentials |
-|---------|-------|------|-------------|
-| PostgreSQL | `postgres:16-alpine` | 5432 | `postgres` / `postgres` |
-| Redis | `redis:7-alpine` | 6379 | — |
-| Backend API | `alvaroMarcani/boomy-backend:latest` | 5000 | — |
-| Frontend | `alvaroMarcani/boomy-frontend:latest` | 4200 | — |
-| pgAdmin | `dpage/pgadmin4:latest` | 5050 | `admin@boomy.com` / `admin123` |
+| Service | Image | Local Port |
+|---------|-------|-----------|
+| PostgreSQL | `postgres:16-alpine` | 5432 |
+| Redis | `redis:7-alpine` | 6379 |
+| Backend API | `alvaroMarcani/boomy-backend:latest` | 5000 |
+| Frontend | `alvaroMarcani/boomy-frontend:latest` | 4200 |
+| pgAdmin | `dpage/pgadmin4:latest` | 5050 |
 
-All services run on the `boomy_network` bridge network.
+All services communicate over the `boomy_network` bridge network.
+
+---
 
 ## Getting Started
 
@@ -34,19 +39,15 @@ All services run on the `boomy_network` bridge network.
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
 
-### 1 — Start the full stack
+### Start the full stack
 
 ```bash
 docker compose up -d
 ```
 
-On first run `init.sql` executes automatically inside the PostgreSQL container and creates:
-- The `boomy_user` role
-- The `boomy_db` database
+On first run, `init.sql` creates the `boomy_user` role and the `boomy_db` database automatically inside the PostgreSQL container. Game modes are seeded by the backend on startup.
 
-The backend seeds the four default game modes on startup.
-
-### 2 — Verify everything is running
+### Verify services are healthy
 
 ```bash
 docker compose ps
@@ -55,12 +56,12 @@ docker compose ps
 | URL | Service |
 |-----|---------|
 | http://localhost:4200 | Frontend |
-| http://localhost:5000/swagger | Backend API / Swagger |
+| http://localhost:5000/swagger | Backend / Swagger UI |
 | http://localhost:5050 | pgAdmin |
 
-### 3 — Connect pgAdmin to the database
+### Connect pgAdmin to the database
 
-Open http://localhost:5050 and add a server with:
+Open **http://localhost:5050**, log in with `admin@boomy.com` / `admin123`, and register a new server:
 
 | Field | Value |
 |-------|-------|
@@ -70,49 +71,41 @@ Open http://localhost:5050 and add a server with:
 | Username | `boomy_user` |
 | Password | `Boomy123!@#` |
 
-### Stopping
+### Stop the stack
 
 ```bash
-docker compose down
+docker compose down          # keep volumes (data is preserved)
+docker compose down -v       # remove volumes (full reset)
 ```
 
-### Resetting the database (wipes all data)
+---
+
+## Applying Migrations
+
+Migration scripts live in `migrations/`. Apply them while the stack is running.
+
+**Via Docker (no local psql required):**
 
 ```bash
-docker compose down -v   # -v removes named volumes
-docker compose up -d
-```
-
-## Running DB Migrations
-
-Migrations live in `migrations/`. Apply them in order while the stack is running:
-
-```bash
-# Example: apply the GameModes + ChatMessages migration
 docker exec -i boomy_postgres psql -U boomy_user -d boomy_db \
   < migrations/migration_add_gamemode_chat.sql
 ```
 
-Or directly from the host if you have `psql` installed:
+**Via local psql:**
 
 ```bash
 psql -h localhost -U boomy_user -d boomy_db \
   -f migrations/migration_add_gamemode_chat.sql
 ```
 
-## Seed Data
-
-```bash
-psql -h localhost -U boomy_user -d boomy_db -f seed_gamemodes.sql
-```
+---
 
 ## CI/CD
 
-`deploy.yml` runs on every push to `main`:
+`deploy.yml` triggers on every push to `main`:
 
-1. SSH into the server
-2. Pull latest Docker images (`docker compose pull`)
-3. Redeploy (`docker compose up -d --remove-orphans`)
+1. Pull the latest images from Docker Hub
+2. Run `docker compose up -d --remove-orphans`
 
 **Required repository secrets:**
 
@@ -121,11 +114,37 @@ psql -h localhost -U boomy_user -d boomy_db -f seed_gamemodes.sql
 | `DOCKER_USERNAME` | Docker Hub username |
 | `DOCKER_PASSWORD` | Docker Hub password or access token |
 
-## Related Repos
+---
 
-| Repo | Description |
-|------|-------------|
-| [boomy-backend](https://github.com/alvaroMarcani/boomy-backend) | .NET 9 API & SignalR backend |
+## Repository Structure
+
+```
+boomy-infrastructure/
++-- docker-compose.yml                        # Full stack definition
++-- init.sql                                  # Bootstraps boomy_user and boomy_db
++-- seed_gamemodes.sql                        # Initial game mode seed data
++-- migrations/
+|   +-- migration_add_gamemode_chat.sql       # Adds GameModes & ChatMessages tables
++-- .github/workflows/
+    +-- deploy.yml                            # Automated deploy on push to main
+```
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m "feat: add your feature"`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a pull request
+
+---
+
+## Related Repositories
+
+| Repository | Description |
+|---|---|
+| [boomy-backend](https://github.com/alvaroMarcani/boomy-backend) | .NET 9 REST API + SignalR |
 | [boomy-frontend](https://github.com/alvaroMarcani/boomy-frontend) | Angular 19 client |
-| [boomy-db-scripts](https://github.com/alvaroMarcani/boomy-db-scripts) | Standalone DB init & seed scripts |
-
+| [boomy-db-scripts](https://github.com/alvaroMarcani/boomy-db-scripts) | Standalone SQL scripts |
