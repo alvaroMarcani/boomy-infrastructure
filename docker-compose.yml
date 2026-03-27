@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -38,7 +36,10 @@ services:
 
   # Backend API
   backend:
-    image: ${DOCKER_USERNAME:-alvaroMarcani}/boomy-backend:latest
+    build:
+      context: ../boomy-backend
+      dockerfile: Dockerfile
+    image: boomy-backend:latest
     container_name: boomy_backend
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -56,7 +57,10 @@ services:
 
   # Frontend
   frontend:
-    image: ${DOCKER_USERNAME:-alvaroMarcani}/boomy-frontend:latest
+    build:
+      context: ../boomy-frontend
+      dockerfile: Dockerfile
+    image: boomy-frontend:latest
     container_name: boomy_frontend
     ports:
       - "4200:4200"
